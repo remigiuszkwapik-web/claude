@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VeloForce — Ride Beyond Limits</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:   #0a0a0a;
+      --dark:    #111317;
+      --card-bg: #16191f;
+      --border:  #222630;
+      --accent:  #e8ff00;
+      --accent2: #00d4ff;
+      --text:    #f0f0f0;
+      --muted:   #8a8f9e;
+      --radius:  12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--black);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 4rem;
+      background: rgba(10,10,10,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      color: var(--text);
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .95rem;
+      font-weight: 500;
+      transition: color .2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      background: var(--accent);
+      color: var(--black);
+      border: none;
+      padding: .6rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s;
+    }
+
+    .nav-cta:hover { opacity: .88; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 8rem 4rem 4rem;
+      background:
+        radial-gradient(ellipse 80% 60% at 60% 40%, rgba(232,255,0,.07) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 70%, rgba(0,212,255,.05) 0%, transparent 60%),
+        var(--black);
+    }
+
+    .hero-grid {
+      max-width: 1280px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: rgba(232,255,0,.1);
+      border: 1px solid rgba(232,255,0,.25);
+      color: var(--accent);
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: .35rem .9rem;
+      border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .3; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 5vw, 5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -.04em;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 .highlight {
+      color: var(--accent);
+      display: block;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 480px;
+      margin-bottom: 2.5rem;
+      line-height: 1.75;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--black);
+      border: none;
+      padding: .9rem 2.2rem;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform .15s, opacity .2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary:hover { transform: translateY(-2px); opacity: .9; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      padding: .9rem 2.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-outline:hover { border-color: var(--muted); background: rgba(255,255,255,.04); }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-circle {
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,255,0,.12) 0%, transparent 70%);
+      border: 1px solid rgba(232,255,0,.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      animation: spin-slow 20s linear infinite;
+    }
+
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .hero-circle-inner {
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      border: 1px dashed rgba(232,255,0,.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: spin-slow 20s linear infinite reverse;
+    }
+
+    .hero-bike-icon {
+      font-size: 8rem;
+      animation: none;
+    }
+
+    .hero-stats {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .hero-stat {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.4rem;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .hero-stat-value {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .hero-stat-label {
+      font-size: .75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: .25rem;
+    }
+
+    .stat-top-right { position: absolute; top: 2rem; right: -2rem; }
+    .stat-bottom-left { position: absolute; bottom: 2rem; left: -2rem; }
+
+    /* ── BRANDS ── */
+    .brands {
+      padding: 3rem 4rem;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brands-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+    }
+
+    .brands-label {
+      font-size: .8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      white-space: nowrap;
+    }
+
+    .brands-logos {
+      display: flex;
+      gap: 3rem;
+      align-items: center;
+      flex: 1;
+      flex-wrap: wrap;
+    }
+
+    .brand-logo {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .05em;
+      opacity: .6;
+      transition: opacity .2s;
+      cursor: default;
+    }
+
+    .brand-logo:hover { opacity: 1; color: var(--text); }
+
+    /* ── FEATURES ── */
+    .section {
+      padding: 7rem 4rem;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .section-tag {
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: .75rem;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: -.03em;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.75;
+      margin-bottom: 3.5rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      transition: border-color .2s, transform .2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(232,255,0,.04) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .feature-card:hover { border-color: rgba(232,255,0,.3); transform: translateY(-4px); }
+    .feature-card:hover::after { opacity: 1; }
+
+    .feature-icon {
+      font-size: 2.2rem;
+      margin-bottom: 1.25rem;
+      display: block;
+    }
+
+    .feature-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: .6rem;
+    }
+
+    .feature-desc {
+      font-size: .9rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ── BIKES ── */
+    .bikes-section {
+      background: var(--dark);
+      padding: 7rem 0;
+    }
+
+    .bikes-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 4rem;
+    }
+
+    .bikes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+    }
+
+    .bike-card {
+      background: var(--black);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color .25s, transform .25s;
+    }
+
+    .bike-card:hover { border-color: rgba(232,255,0,.35); transform: translateY(-6px); }
+
+    .bike-card.featured {
+      border-color: var(--accent);
+      position: relative;
+    }
+
+    .bike-badge {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: var(--accent);
+      color: var(--black);
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: .3rem .8rem;
+      border-radius: 100px;
+    }
+
+    .bike-visual {
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 7rem;
+      background: radial-gradient(ellipse at center, rgba(232,255,0,.08) 0%, transparent 70%);
+    }
+
+    .bike-info {
+      padding: 1.75rem;
+    }
+
+    .bike-category {
+      font-size: .75rem;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: .5rem;
+    }
+
+    .bike-name {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: .75rem;
+    }
+
+    .bike-specs {
+      display: flex;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .bike-spec {
+      font-size: .82rem;
+      color: var(--muted);
+    }
+
+    .bike-spec strong {
+      display: block;
+      color: var(--text);
+      font-size: .95rem;
+      font-weight: 700;
+    }
+
+    .bike-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .bike-price {
+      font-size: 1.4rem;
+      font-weight: 900;
+    }
+
+    .bike-btn {
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+      padding: .55rem 1.25rem;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      text-decoration: none;
+    }
+
+    .bike-btn:hover { background: var(--accent); color: var(--black); }
+
+    /* ── STATS ── */
+    .stats-section {
+      padding: 6rem 4rem;
+      background:
+        linear-gradient(135deg, rgba(232,255,0,.05) 0%, transparent 50%),
+        var(--black);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stats-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      text-align: center;
+    }
+
+    .stat-item {}
+
+    .stat-number {
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1;
+      letter-spacing: -.04em;
+    }
+
+    .stat-unit {
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    .stat-desc {
+      font-size: .9rem;
+      color: var(--muted);
+      margin-top: .6rem;
+    }
+
+    /* ── PERFORMANCE ── */
+    .performance-section {
+      padding: 7rem 4rem;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .performance-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    .perf-visual {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+    }
+
+    .perf-chart-title {
+      font-size: .8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 2rem;
+    }
+
+    .metric-row {
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: .5rem;
+      font-size: .9rem;
+    }
+
+    .metric-name { color: var(--text); font-weight: 600; }
+    .metric-value { color: var(--accent); font-weight: 700; }
+
+    .metric-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .metric-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 3px;
+      animation: grow 1.4s ease forwards;
+    }
+
+    @keyframes grow {
+      from { width: 0; }
+    }
+
+    .perf-content {}
+
+    .perf-list {
+      list-style: none;
+      margin-top: 2rem;
+    }
+
+    .perf-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      font-size: .95rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .perf-list li::before {
+      content: '✓';
+      background: rgba(232,255,0,.12);
+      color: var(--accent);
+      font-weight: 900;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      flex-shrink: 0;
+      margin-top: .1rem;
+    }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-section {
+      background: var(--dark);
+      padding: 7rem 4rem;
+    }
+
+    .testimonials-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+    }
+
+    .testimonial-card {
+      background: var(--black);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+
+    .testimonial-stars {
+      color: var(--accent);
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      letter-spacing: .1em;
+    }
+
+    .testimonial-text {
+      font-size: .95rem;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: 1.5rem;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+    }
+
+    .author-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .author-name {
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    .author-role {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 8rem 4rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(232,255,0,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-inner {
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(2.2rem, 4vw, 3.5rem);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: 1.1;
+      margin-bottom: 1.25rem;
+    }
+
+    .cta-section p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      line-height: 1.7;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 4rem;
+      background: var(--dark);
+    }
+
+    .footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr repeat(3, 1fr);
+      gap: 3rem;
+    }
+
+    .footer-brand .nav-logo { margin-bottom: 1rem; display: block; }
+
+    .footer-desc {
+      font-size: .9rem;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 260px;
+    }
+
+    .footer-col h4 {
+      font-size: .85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text);
+      margin-bottom: 1.25rem;
+    }
+
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .7rem;
+    }
+
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .9rem;
+      transition: color .2s;
+    }
+
+    .footer-links a:hover { color: var(--text); }
+
+    .footer-bottom {
+      max-width: 1280px;
+      margin: 3rem auto 0;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      nav { padding: 1rem 2rem; }
+      .nav-links { display: none; }
+      .hero-grid { grid-template-columns: 1fr; gap: 3rem; padding-top: 2rem; }
+      .hero-visual { display: none; }
+      .section, .performance-section { padding: 5rem 2rem; }
+      .features-grid, .bikes-grid, .testimonials-grid { grid-template-columns: 1fr 1fr; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+      .performance-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .brands, .brands-inner { padding: 2rem; }
+      .bikes-section, .testimonials-section { padding: 5rem 2rem; }
+      .bikes-inner { padding: 0 2rem; }
+      .testimonials-inner { padding: 0; }
+      .cta-section, .stats-section { padding: 5rem 2rem; }
+      footer { padding: 3rem 2rem; }
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 7rem 1.5rem 3rem; }
+      .features-grid, .bikes-grid, .testimonials-grid { grid-template-columns: 1fr; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .footer-inner { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+      .hero-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <span class="nav-logo">Velo<span>Force</span></span>
+    <ul class="nav-links">
+      <li><a href="#bikes">Bikes</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#performance">Performance</a></li>
+      <li><a href="#reviews">Reviews</a></li>
+    </ul>
+    <button class="nav-cta">Shop Now</button>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge">New Season 2026</div>
+        <h1>
+          Engineered<br>to <span class="highlight">Dominate</span>
+        </h1>
+        <p class="hero-sub">
+          Carbon-fiber frames, precision drivetrains, and aerodynamic mastery.
+          Built for athletes who refuse to slow down.
+        </p>
+        <div class="hero-actions">
+          <a href="#bikes" class="btn-primary">Explore Bikes</a>
+          <a href="#performance" class="btn-outline">View Performance</a>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-circle">
+          <div class="hero-circle-inner">
+            <span class="hero-bike-icon">🚴</span>
+          </div>
+        </div>
+        <div class="hero-stat stat-top-right">
+          <div class="hero-stat-value">28<span style="font-size:1rem">kg</span></div>
+          <div class="hero-stat-label">Frame Weight</div>
+        </div>
+        <div class="hero-stat stat-bottom-left">
+          <div class="hero-stat-value">97<span style="font-size:1rem">%</span></div>
+          <div class="hero-stat-label">Efficiency</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRANDS -->
+  <div class="brands">
+    <div class="brands-inner">
+      <span class="brands-label">Trusted by</span>
+      <div class="brands-logos">
+        <span class="brand-logo">SHIMANO</span>
+        <span class="brand-logo">SRAM</span>
+        <span class="brand-logo">CAMPAGNOLO</span>
+        <span class="brand-logo">VITTORIA</span>
+        <span class="brand-logo">WAHOO</span>
+        <span class="brand-logo">GARMIN</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div id="features" class="section">
+    <p class="section-tag">Why VeloForce</p>
+    <h2 class="section-title">Built for Speed.<br>Designed to Last.</h2>
+    <p class="section-subtitle">
+      Every component is precision-engineered to give you the competitive edge —
+      whether you're racing crits, climbing cols, or crushing centuries.
+    </p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3 class="feature-title">Aero Carbon Frame</h3>
+        <p class="feature-desc">T800 carbon layup with wind-tunnel-optimized tube profiles. Save up to 40 watts at race speed compared to aluminum alternatives.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚙️</span>
+        <h3 class="feature-title">Electronic Shifting</h3>
+        <p class="feature-desc">Wireless Di2/eTap integration with instant, precise gear changes under any load. Zero mechanical cables for maximum reliability.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🛞</span>
+        <h3 class="feature-title">Deep-Section Wheels</h3>
+        <p class="feature-desc">50mm carbon rims with tubeless-ready hookless bead. Lower rolling resistance, better crosswind stability, and faster flats.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📡</span>
+        <h3 class="feature-title">Smart Sensors</h3>
+        <p class="feature-desc">Integrated power meter, cadence sensor, and heart rate connectivity. Track every watt and beat directly on your GPS computer.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h3 class="feature-title">Lifetime Frame Warranty</h3>
+        <p class="feature-desc">We stand behind our engineering. Every VeloForce frameset comes with a lifetime crash replacement program — no questions asked.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🏆</span>
+        <h3 class="feature-title">Race-Tested Design</h3>
+        <p class="feature-desc">Developed alongside UCI WorldTour teams. Our frames have carried riders to Grand Tour stages and world championship podiums.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIKES -->
+  <section class="bikes-section">
+    <div class="bikes-inner">
+      <p class="section-tag" id="bikes">Our Range</p>
+      <h2 class="section-title">Find Your Perfect Ride</h2>
+      <p class="section-subtitle">From featherweight climbers to all-day endurance machines, every VeloForce is optimized for one thing — your best ride.</p>
+
+      <div class="bikes-grid">
+        <div class="bike-card">
+          <div class="bike-visual">🚴‍♂️</div>
+          <div class="bike-info">
+            <p class="bike-category">Endurance</p>
+            <h3 class="bike-name">VF Granfondo 105</h3>
+            <div class="bike-specs">
+              <div class="bike-spec"><strong>8.1 kg</strong>Weight</div>
+              <div class="bike-spec"><strong>11-spd</strong>Groupset</div>
+              <div class="bike-spec"><strong>28mm</strong>Tyre</div>
+            </div>
+            <div class="bike-footer">
+              <span class="bike-price">€2,499</span>
+              <a href="#" class="bike-btn">View Bike</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="bike-card featured">
+          <div class="bike-badge">Best Seller</div>
+          <div class="bike-visual">🚵</div>
+          <div class="bike-info">
+            <p class="bike-category">Race</p>
+            <h3 class="bike-name">VF Aero Pro Ultegra</h3>
+            <div class="bike-specs">
+              <div class="bike-spec"><strong>6.8 kg</strong>Weight</div>
+              <div class="bike-spec"><strong>12-spd</strong>Groupset</div>
+              <div class="bike-spec"><strong>25mm</strong>Tyre</div>
+            </div>
+            <div class="bike-footer">
+              <span class="bike-price">€4,999</span>
+              <a href="#" class="bike-btn">View Bike</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="bike-card">
+          <div class="bike-visual">🏍️</div>
+          <div class="bike-info">
+            <p class="bike-category">Climbing</p>
+            <h3 class="bike-name">VF Summit Dura-Ace</h3>
+            <div class="bike-specs">
+              <div class="bike-spec"><strong>6.2 kg</strong>Weight</div>
+              <div class="bike-spec"><strong>12-spd</strong>Groupset</div>
+              <div class="bike-spec"><strong>28mm</strong>Tyre</div>
+            </div>
+            <div class="bike-footer">
+              <span class="bike-price">€7,499</span>
+              <a href="#" class="bike-btn">View Bike</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-section">
+    <div class="stats-inner">
+      <div class="stat-item">
+        <div class="stat-number">14<span class="stat-unit">+</span></div>
+        <div class="stat-desc">Years of Racing Heritage</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">38<span class="stat-unit">k</span></div>
+        <div class="stat-desc">Bikes Delivered Worldwide</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">97<span class="stat-unit">%</span></div>
+        <div class="stat-desc">Customer Satisfaction Rate</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">312</div>
+        <div class="stat-desc">Race Victories This Season</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERFORMANCE -->
+  <div id="performance" class="performance-section">
+    <div class="performance-grid">
+      <div class="perf-visual">
+        <p class="perf-chart-title">VF Aero Pro vs. Competitors</p>
+        <div class="metric-row">
+          <div class="metric-header">
+            <span class="metric-name">Aerodynamic Drag (CdA)</span>
+            <span class="metric-value">−18%</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" style="width:92%"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-header">
+            <span class="metric-name">Stiffness-to-Weight</span>
+            <span class="metric-value">Top 3%</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" style="width:97%"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-header">
+            <span class="metric-name">Drivetrain Efficiency</span>
+            <span class="metric-value">98.6%</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" style="width:86%"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-header">
+            <span class="metric-name">Rolling Resistance</span>
+            <span class="metric-value">−22%</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" style="width:78%"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-header">
+            <span class="metric-name">Frame Torsional Rigidity</span>
+            <span class="metric-value">Nm/deg 34.2</span>
+          </div>
+          <div class="metric-bar"><div class="metric-fill" style="width:95%"></div></div>
+        </div>
+      </div>
+
+      <div class="perf-content">
+        <p class="section-tag">Performance Data</p>
+        <h2 class="section-title">Numbers Don't Lie</h2>
+        <p style="color: var(--muted); font-size: .95rem; line-height: 1.75; margin-top: 1rem;">
+          Every VeloForce frame is validated in our wind tunnel, load lab, and real-world race conditions.
+          We publish our data because we have nothing to hide.
+        </p>
+        <ul class="perf-list">
+          <li>Wind-tunnel tested at 40+ km/h to quantify true aero savings</li>
+          <li>ISO 4210 certified — exceeds road and mountain safety standards</li>
+          <li>Independent lab-verified stiffness and fatigue tests on every model</li>
+          <li>Power meter calibration verified within ±1% accuracy</li>
+          <li>All specs verified with third-party testing institute reports</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TESTIMONIALS -->
+  <section id="reviews" class="testimonials-section">
+    <div class="testimonials-inner">
+      <p class="section-tag">Rider Reviews</p>
+      <h2 class="section-title">What Athletes Say</h2>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">
+            "The VF Aero Pro is the fastest bike I've ever ridden. I dropped 4 minutes off my century PR in the first month. The handling is razor-sharp — you feel every watt going straight to the road."
+          </p>
+          <div class="testimonial-author">
+            <div class="author-avatar">🏅</div>
+            <div>
+              <div class="author-name">Marcus Heller</div>
+              <div class="author-role">Cat 1 Road Racer · Germany</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">
+            "I climbed my first 4000m col on the Summit. At 6.2kg it floats uphill. The stiffness is incredible — zero flex on standing sprints. Hands down the best climbing machine available under €10k."
+          </p>
+          <div class="testimonial-author">
+            <div class="author-avatar">⛰️</div>
+            <div>
+              <div class="author-name">Sofia Brandt</div>
+              <div class="author-role">Amateur Climber · Switzerland</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">
+            "Granfondo 105 took me from couch to century in 6 months. Comfortable enough for 200km days but stiff enough that sprints feel alive. VeloForce's customer support is also absolutely world-class."
+          </p>
+          <div class="testimonial-author">
+            <div class="author-avatar">🚀</div>
+            <div>
+              <div class="author-name">Lena Kowalski</div>
+              <div class="author-role">Endurance Rider · Poland</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-inner">
+      <p class="section-tag">Start Your Journey</p>
+      <h2>Ready to <span style="color: var(--accent)">Ride Faster?</span></h2>
+      <p>
+        Configure your dream build, get a custom fit consultation, or visit one of our
+        flagship stores. Your next podium finish starts here.
+      </p>
+      <div class="cta-buttons">
+        <a href="#bikes" class="btn-primary">Build Your Bike</a>
+        <a href="#" class="btn-outline">Book a Fit Session</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="nav-logo">Velo<span>Force</span></span>
+        <p class="footer-desc">
+          Engineering speed, precision, and passion into every frame since 2012.
+          Ride without compromise.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Bikes</h4>
+        <ul class="footer-links">
+          <li><a href="#">Road Racing</a></li>
+          <li><a href="#">Endurance</a></li>
+          <li><a href="#">Climbing</a></li>
+          <li><a href="#">Gravel</a></li>
+          <li><a href="#">TT / Triathlon</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul class="footer-links">
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Racing Team</a></li>
+          <li><a href="#">Technology</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul class="footer-links">
+          <li><a href="#">Bike Finder</a></li>
+          <li><a href="#">Size Guide</a></li>
+          <li><a href="#">Warranty</a></li>
+          <li><a href="#">Dealers</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026 VeloForce GmbH. All rights reserved.</span>
+      <span>Privacy Policy · Terms of Service · Cookie Settings</span>
+    </div>
+  </footer>
+
+</body>
+</html>
