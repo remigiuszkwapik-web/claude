@@ -7,17 +7,22 @@ figma.showUI(__html__, {
 });
 
 function readSelectionColor() {
-  const sel = figma.currentPage.selection;
+  var sel = figma.currentPage.selection;
   if (sel.length === 0) {
     figma.ui.postMessage({ type: "selection", color: null });
     return;
   }
 
-  const node = sel[0];
+  var node = sel[0];
   if ("fills" in node && Array.isArray(node.fills) && node.fills.length > 0) {
-    const fill = [...node.fills].reverse().find(
-      (f) => f.type === "SOLID" && f.visible !== false
-    );
+    var fills = node.fills.slice().reverse();
+    var fill = null;
+    for (var i = 0; i < fills.length; i++) {
+      if (fills[i].type === "SOLID" && fills[i].visible !== false) {
+        fill = fills[i];
+        break;
+      }
+    }
     if (fill) {
       figma.ui.postMessage({
         type: "selection",
@@ -36,34 +41,32 @@ function readSelectionColor() {
   figma.ui.postMessage({ type: "selection", color: null, nodeName: null });
 }
 
-async function main() {
-  // Pflicht bei documentAccess: dynamic-page vor documentchange
-  await figma.loadAllPagesAsync();
-
-  // Selektion beim Start lesen
+figma.loadAllPagesAsync().then(function () {
   readSelectionColor();
 
-  // Auf Selektionsänderungen reagieren
   figma.on("selectionchange", readSelectionColor);
 
-  // Auf Dokumentänderungen reagieren (z.B. Pipette ändert Fill eines selektierten Nodes)
-  figma.on("documentchange", (event) => {
-    const selectionIds = new Set(figma.currentPage.selection.map((n) => n.id));
-    const fillChanged = event.documentChanges.some(
-      (change) =>
+  figma.on("documentchange", function (event) {
+    var sel = figma.currentPage.selection;
+    var selectionIds = {};
+    for (var i = 0; i < sel.length; i++) {
+      selectionIds[sel[i].id] = true;
+    }
+    for (var j = 0; j < event.documentChanges.length; j++) {
+      var change = event.documentChanges[j];
+      if (
         change.type === "PROPERTY_CHANGE" &&
-        selectionIds.has(change.id) &&
-        change.properties.includes("fills")
-    );
-    if (fillChanged) {
-      readSelectionColor();
+        selectionIds[change.id] &&
+        change.properties.indexOf("fills") !== -1
+      ) {
+        readSelectionColor();
+        return;
+      }
     }
   });
-}
+});
 
-main();
-
-figma.ui.onmessage = (msg) => {
+figma.ui.onmessage = function (msg) {
   if (msg.type === "close") {
     figma.closePlugin();
   }
