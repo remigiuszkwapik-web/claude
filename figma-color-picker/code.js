@@ -25,7 +25,7 @@ function readSelectionColor() {
           r: fill.color.r,
           g: fill.color.g,
           b: fill.color.b,
-          a: fill.opacity ?? 1,
+          a: fill.opacity !== undefined ? fill.opacity : 1,
         },
         nodeName: node.name,
       });
