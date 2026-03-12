@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<title>Color Picker</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #2c2c2c;
+  --bg2:       #3c3c3c;
+  --bg3:       #1e1e1e;
+  --border:    rgba(255,255,255,0.1);
+  --text:      #e5e5e5;
+  --text-dim:  #888;
+  --accent:    #0d99ff;
+  --radius:    3px;
+}
+
+body {
+  font-family: Inter, -apple-system, sans-serif;
+  font-size: 11px;
+  background: var(--bg3);
+  color: var(--text);
+  padding: 0;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* ── Selection Banner ─────────────────────────── */
+#selection-banner {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: rgba(13,153,255,0.12);
+  border-bottom: 1px solid rgba(13,153,255,0.25);
+  font-size: 10px;
+  color: var(--accent);
+}
+#selection-banner.visible { display: flex; }
+#sel-swatch {
+  width: 12px; height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+#sel-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#sel-apply {
+  background: none;
+  border: 1px solid rgba(13,153,255,0.4);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-size: 10px;
+  font-family: inherit;
+  padding: 2px 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#sel-apply:hover { background: rgba(13,153,255,0.15); }
+
+/* ── Gradient Field ───────────────────────────── */
+.field-wrap {
+  position: relative;
+  width: 100%;
+  height: 200px;
+}
+#sb-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+.sb-cursor {
+  position: absolute;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0,0,0,0.2);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+/* ── Sliders ──────────────────────────────────── */
+.sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 10px 0;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slider-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  position: relative;
+  cursor: pointer;
+  touch-action: none;
+}
+#hue-track {
+  background: linear-gradient(to right,
+    #f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);
+}
+
+.checker-bg {
+  background-image:
+    linear-gradient(45deg, #555 25%, transparent 25%),
+    linear-gradient(-45deg, #555 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #555 75%),
+    linear-gradient(-45deg, transparent 75%, #555 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 0 3px, 3px -3px, -3px 0;
+}
+
+#alpha-track { position: relative; overflow: visible; }
+#alpha-gradient {
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+}
+
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* ── Preview Row ──────────────────────────────── */
+.preview-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 0;
+}
+
+.swatch-stack {
+  position: relative;
+  width: 32px; height: 24px;
+  flex-shrink: 0;
+}
+.swatch {
+  position: absolute;
+  width: 22px; height: 22px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.15);
+  overflow: hidden;
+}
+.swatch-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(45deg, #666 25%, transparent 25%),
+    linear-gradient(-45deg, #666 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #666 75%),
+    linear-gradient(-45deg, transparent 75%, #666 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 0 3px, 3px -3px, -3px 0;
+}
+.swatch-color { position: absolute; inset: 0; }
+#swatch-old { bottom: 0; left: 0; }
+#swatch-new { top: 0; right: 0; }
+
+.hex-opacity-row {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.field-group label {
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.field-group input {
+  background: var(--bg2);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 11px;
+  font-family: inherit;
+  padding: 3px 5px;
+  text-align: center;
+  outline: none;
+  width: 100%;
+}
+.field-group input:focus {
+  border-color: var(--accent);
+}
+.field-group.hex-fg { flex: 1; }
+.field-group.opacity-fg { width: 44px; flex-shrink: 0; }
+
+/* ── Mode Tabs ────────────────────────────────── */
+.mode-tabs {
+  display: flex;
+  gap: 1px;
+  padding: 8px 10px 0;
+}
+.mode-tab {
+  flex: 1;
+  text-align: center;
+  padding: 4px 0;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 10px;
+  font-family: inherit;
+  color: var(--text-dim);
+  background: none;
+  transition: color 0.1s, background 0.1s;
+}
+.mode-tab:hover { color: var(--text); background: var(--bg2); }
+.mode-tab.active {
+  color: var(--text);
+  background: var(--bg2);
+  border-color: var(--border);
+}
+
+/* ── Channel Inputs ───────────────────────────── */
+.channels {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px 12px;
+}
+.channels .field-group { flex: 1; }
+.channels .field-group input { min-width: 0; }
+
+/* ── Copy strip ───────────────────────────────── */
+.copy-strip {
+  padding: 0 10px 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+#copy-btn {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-family: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+#copy-btn:hover { color: var(--text); background: #484848; }
+#copy-btn.ok { color: #4ade80; border-color: #4ade80; }
+</style>
+</head>
+<body>
+
+<!-- Selection Banner -->
+<div id="selection-banner">
+  <div id="sel-swatch"></div>
+  <span id="sel-name">Layer</span>
+  <button id="sel-apply">Übernehmen</button>
+</div>
+
+<!-- SB Gradient -->
+<div class="field-wrap">
+  <canvas id="sb-canvas"></canvas>
+  <div class="sb-cursor" id="sb-cursor"></div>
+</div>
+
+<!-- Sliders -->
+<div class="sliders">
+  <div class="slider-row">
+    <div class="slider-track" id="hue-track">
+      <div class="slider-thumb" id="hue-thumb"></div>
+    </div>
+  </div>
+  <div class="slider-row">
+    <div class="slider-track checker-bg" id="alpha-track">
+      <div id="alpha-gradient"></div>
+      <div class="slider-thumb" id="alpha-thumb"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview + Hex/Opacity -->
+<div class="preview-row">
+  <div class="swatch-stack">
+    <div class="swatch" id="swatch-old">
+      <div class="swatch-bg"></div>
+      <div class="swatch-color" id="swatch-old-color"></div>
+    </div>
+    <div class="swatch" id="swatch-new">
+      <div class="swatch-bg"></div>
+      <div class="swatch-color" id="swatch-new-color"></div>
+    </div>
+  </div>
+  <div class="hex-opacity-row">
+    <div class="field-group hex-fg">
+      <label>HEX</label>
+      <input id="hex-in" type="text" maxlength="9" spellcheck="false" />
+    </div>
+    <div class="field-group opacity-fg">
+      <label>%</label>
+      <input id="opacity-in" type="text" maxlength="3" />
+    </div>
+  </div>
+</div>
+
+<!-- Mode Tabs -->
+<div class="mode-tabs">
+  <button class="mode-tab active" data-mode="hex">HEX</button>
+  <button class="mode-tab" data-mode="rgb">RGB</button>
+  <button class="mode-tab" data-mode="hsl">HSL</button>
+</div>
+
+<!-- Channel Inputs (mode-specific) -->
+<div class="channels" id="channels-hex">
+  <!-- HEX mode: nothing extra (shown above) -->
+</div>
+
+<div class="channels" id="channels-rgb" style="display:none">
+  <div class="field-group">
+    <label>R</label><input id="r-in" type="text" maxlength="3" />
+  </div>
+  <div class="field-group">
+    <label>G</label><input id="g-in" type="text" maxlength="3" />
+  </div>
+  <div class="field-group">
+    <label>B</label><input id="b-in" type="text" maxlength="3" />
+  </div>
+</div>
+
+<div class="channels" id="channels-hsl" style="display:none">
+  <div class="field-group">
+    <label>H°</label><input id="h-in" type="text" maxlength="3" />
+  </div>
+  <div class="field-group">
+    <label>S%</label><input id="s-in" type="text" maxlength="3" />
+  </div>
+  <div class="field-group">
+    <label>L%</label><input id="l-in" type="text" maxlength="3" />
+  </div>
+</div>
+
+<div class="copy-strip">
+  <button id="copy-btn">Kopieren</button>
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────────────────
+let hue = 210;       // 0–360  (HSB hue, drives the canvas)
+let sat = 0.8;       // 0–1    (HSB saturation)
+let bri = 0.9;       // 0–1    (HSB brightness)
+let alpha = 1;       // 0–1
+let mode = "hex";
+let prevColor = null; // { r, g, b, a } 0–255 / 0–1 (for old swatch)
+let selColor = null;  // color from selection { r, g, b, a } 0–1
+
+// ── Elements ────────────────────────────────────────────────────
+const canvas      = document.getElementById("sb-canvas");
+const ctx         = canvas.getContext("2d");
+const sbCursor    = document.getElementById("sb-cursor");
+const hueTrack    = document.getElementById("hue-track");
+const hueThumb    = document.getElementById("hue-thumb");
+const alphaTrack  = document.getElementById("alpha-track");
+const alphaGrad   = document.getElementById("alpha-gradient");
+const alphaThumb  = document.getElementById("alpha-thumb");
+const swatchOld   = document.getElementById("swatch-old-color");
+const swatchNew   = document.getElementById("swatch-new-color");
+const hexIn       = document.getElementById("hex-in");
+const opIn        = document.getElementById("opacity-in");
+const rIn         = document.getElementById("r-in");
+const gIn         = document.getElementById("g-in");
+const bIn         = document.getElementById("b-in");
+const hIn         = document.getElementById("h-in");
+const sIn         = document.getElementById("s-in");
+const lIn         = document.getElementById("l-in");
+const copyBtn     = document.getElementById("copy-btn");
+const banner      = document.getElementById("selection-banner");
+const selSwatch   = document.getElementById("sel-swatch");
+const selName     = document.getElementById("sel-name");
+const selApply    = document.getElementById("sel-apply");
+
+// ── Color Math ──────────────────────────────────────────────────
+function hsbToRgb(h, s, b) {
+  const c = b * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = b - c;
+  let r = 0, g = 0, bv = 0;
+  if      (h < 60)  { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; bv = x; }
+  else if (h < 240) { g = x; bv = c; }
+  else if (h < 300) { r = x; bv = c; }
+  else              { r = c; bv = x; }
+  return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((bv+m)*255)];
+}
+
+function rgbToHsb(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max - min;
+  let h = 0;
+  if (d) {
+    if      (max === r) h = ((g-b)/d+6)%6*60;
+    else if (max === g) h = ((b-r)/d+2)*60;
+    else                h = ((r-g)/d+4)*60;
+  }
+  return [h, max ? d/max : 0, max];
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (!d) return [0, 0, Math.round(l * 100)];
+  const s = d / (1 - Math.abs(2*l - 1));
+  let h = 0;
+  if      (max === r) h = ((g-b)/d+6)%6*60;
+  else if (max === g) h = ((b-r)/d+2)*60;
+  else                h = ((r-g)/d+4)*60;
+  return [Math.round(h), Math.round(s*100), Math.round(l*100)];
+}
+
+function hslToRgb(h, s, l) {
+  s /= 100; l /= 100;
+  const c = (1 - Math.abs(2*l-1)) * s;
+  const x = c * (1 - Math.abs((h/60)%2-1));
+  const m = l - c/2;
+  let r=0,g=0,b=0;
+  if      (h<60)  {r=c;g=x;}
+  else if (h<120) {r=x;g=c;}
+  else if (h<180) {g=c;b=x;}
+  else if (h<240) {g=x;b=c;}
+  else if (h<300) {r=x;b=c;}
+  else            {r=c;b=x;}
+  return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+}
+
+function toHex(n) { return n.toString(16).padStart(2,"0").toUpperCase(); }
+
+function buildHex(r, g, b, a) {
+  const suffix = a < 1 ? toHex(Math.round(a*255)) : "";
+  return "#" + toHex(r) + toHex(g) + toHex(b) + suffix;
+}
+
+function rgbaCss(r, g, b, a) { return `rgba(${r},${g},${b},${a})`; }
+
+// ── Canvas ──────────────────────────────────────────────────────
+function initCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function drawCanvas() {
+  const w = canvas.getBoundingClientRect().width;
+  const h = canvas.getBoundingClientRect().height;
+  const hGrad = ctx.createLinearGradient(0,0,w,0);
+  hGrad.addColorStop(0, "#fff");
+  hGrad.addColorStop(1, `hsl(${hue},100%,50%)`);
+  ctx.fillStyle = hGrad;
+  ctx.fillRect(0,0,w,h);
+  const vGrad = ctx.createLinearGradient(0,0,0,h);
+  vGrad.addColorStop(0, "rgba(0,0,0,0)");
+  vGrad.addColorStop(1, "#000");
+  ctx.fillStyle = vGrad;
+  ctx.fillRect(0,0,w,h);
+}
+
+// ── Update ──────────────────────────────────────────────────────
+function update(saveOld) {
+  const [r, g, b] = hsbToRgb(hue, sat, bri);
+  const css = rgbaCss(r, g, b, alpha);
+
+  if (saveOld) {
+    prevColor = { r, g, b, a: alpha };
+  }
+
+  // Canvas
+  drawCanvas();
+
+  // SB cursor
+  const cr = canvas.getBoundingClientRect();
+  sbCursor.style.left = (sat * cr.width) + "px";
+  sbCursor.style.top  = ((1-bri) * cr.height) + "px";
+
+  // Hue thumb
+  hueThumb.style.left = (hue/360*100) + "%";
+  hueThumb.style.background = `hsl(${hue},100%,50%)`;
+
+  // Alpha gradient + thumb
+  alphaGrad.style.background =
+    `linear-gradient(to right,rgba(${r},${g},${b},0),rgb(${r},${g},${b}))`;
+  alphaThumb.style.left = (alpha*100) + "%";
+  alphaThumb.style.background = css;
+
+  // Swatches
+  if (prevColor) {
+    swatchOld.style.background =
+      rgbaCss(prevColor.r, prevColor.g, prevColor.b, prevColor.a);
+  } else {
+    swatchOld.style.background = css;
+  }
+  swatchNew.style.background = css;
+
+  // Hex + opacity
+  hexIn.value = buildHex(r, g, b, alpha);
+  opIn.value  = Math.round(alpha * 100);
+
+  // RGB inputs
+  rIn.value = r; gIn.value = g; bIn.value = b;
+
+  // HSL inputs
+  const [hl, sl, ll] = rgbToHsl(r, g, b);
+  hIn.value = hl; sIn.value = sl; lIn.value = ll;
+}
+
+// ── Drag ────────────────────────────────────────────────────────
+function draggable(el, fn) {
+  let on = false;
+  const go = (e) => {
+    if (!on) return;
+    const pt = e.touches ? e.touches[0] : e;
+    const rect = el.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (pt.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (pt.clientY - rect.top)  / rect.height));
+    fn(x, y);
+  };
+  el.addEventListener("mousedown",  (e) => { on = true; go(e); e.preventDefault(); });
+  el.addEventListener("touchstart", (e) => { on = true; go(e); }, { passive: false });
+  window.addEventListener("mousemove",  go);
+  window.addEventListener("touchmove",  go, { passive: false });
+  window.addEventListener("mouseup",  () => on = false);
+  window.addEventListener("touchend", () => on = false);
+}
+
+draggable(canvas, (x, y) => { sat = x; bri = 1 - y; update(); });
+draggable(hueTrack,  (x) => { hue = x * 360; update(); });
+draggable(alphaTrack,(x) => { alpha = x; update(); });
+
+// ── Inputs ──────────────────────────────────────────────────────
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+hexIn.addEventListener("change", () => {
+  let v = hexIn.value.trim().replace(/^#*/,"");
+  if (v.length === 6 || v.length === 8) {
+    const r = parseInt(v.slice(0,2),16), g = parseInt(v.slice(2,4),16), b = parseInt(v.slice(4,6),16);
+    if (v.length === 8) alpha = parseInt(v.slice(6,8),16) / 255;
+    [hue, sat, bri] = rgbToHsb(r, g, b);
+    update(true);
+  }
+});
+
+opIn.addEventListener("change", () => {
+  alpha = clamp(parseInt(opIn.value)||0, 0, 100) / 100;
+  update();
+});
+
+function onRgbChange() {
+  const r = clamp(parseInt(rIn.value)||0,0,255);
+  const g = clamp(parseInt(gIn.value)||0,0,255);
+  const b = clamp(parseInt(bIn.value)||0,0,255);
+  [hue, sat, bri] = rgbToHsb(r, g, b);
+  update(true);
+}
+rIn.addEventListener("change", onRgbChange);
+gIn.addEventListener("change", onRgbChange);
+bIn.addEventListener("change", onRgbChange);
+
+function onHslChange() {
+  const h = clamp(parseInt(hIn.value)||0, 0, 360);
+  const s = clamp(parseInt(sIn.value)||0, 0, 100);
+  const l = clamp(parseInt(lIn.value)||0, 0, 100);
+  const [r, g, b] = hslToRgb(h, s, l);
+  [hue, sat, bri] = rgbToHsb(r, g, b);
+  update(true);
+}
+hIn.addEventListener("change", onHslChange);
+sIn.addEventListener("change", onHslChange);
+lIn.addEventListener("change", onHslChange);
+
+// ── Mode Tabs ───────────────────────────────────────────────────
+document.querySelectorAll(".mode-tab").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    mode = btn.dataset.mode;
+    document.querySelectorAll(".mode-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("channels-hex").style.display = mode === "hex" ? "flex" : "none";
+    document.getElementById("channels-rgb").style.display = mode === "rgb" ? "flex" : "none";
+    document.getElementById("channels-hsl").style.display = mode === "hsl" ? "flex" : "none";
+  });
+});
+
+// ── Copy ────────────────────────────────────────────────────────
+copyBtn.addEventListener("click", () => {
+  const text = hexIn.value;
+  const done = () => {
+    copyBtn.textContent = "Kopiert ✓";
+    copyBtn.classList.add("ok");
+    setTimeout(() => { copyBtn.textContent = "Kopieren"; copyBtn.classList.remove("ok"); }, 1500);
+  };
+  navigator.clipboard.writeText(text).then(done).catch(() => {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); document.body.removeChild(ta); done();
+  });
+});
+
+// ── Selection from Figma ────────────────────────────────────────
+window.onmessage = (event) => {
+  const msg = event.data.pluginMessage;
+  if (!msg) return;
+
+  if (msg.type === "selection") {
+    if (msg.color) {
+      selColor = msg.color; // r,g,b 0–1, a 0–1
+      const r = Math.round(msg.color.r * 255);
+      const g = Math.round(msg.color.g * 255);
+      const b = Math.round(msg.color.b * 255);
+      const a = msg.color.a;
+
+      selSwatch.style.background = `rgba(${r},${g},${b},${a})`;
+      selName.textContent = msg.nodeName || "Layer";
+      banner.classList.add("visible");
+    } else {
+      selColor = null;
+      banner.classList.remove("visible");
+    }
+  }
+};
+
+selApply.addEventListener("click", () => {
+  if (!selColor) return;
+  const r = Math.round(selColor.r * 255);
+  const g = Math.round(selColor.g * 255);
+  const b = Math.round(selColor.b * 255);
+  alpha = selColor.a;
+  [hue, sat, bri] = rgbToHsb(r, g, b);
+  update(true);
+});
+
+// ── Init ────────────────────────────────────────────────────────
+window.addEventListener("resize", () => { initCanvas(); update(); });
+initCanvas();
+update();
+</script>
+</body>
+</html>
