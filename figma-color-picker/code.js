@@ -36,25 +36,32 @@ function readSelectionColor() {
   figma.ui.postMessage({ type: "selection", color: null, nodeName: null });
 }
 
-// Selektion beim Start lesen
-readSelectionColor();
+async function main() {
+  // Pflicht bei documentAccess: dynamic-page vor documentchange
+  await figma.loadAllPagesAsync();
 
-// Auf Selektionsänderungen reagieren
-figma.on("selectionchange", readSelectionColor);
+  // Selektion beim Start lesen
+  readSelectionColor();
 
-// Auf Dokumentänderungen reagieren (z.B. Pipette ändert Fill eines selektierten Nodes)
-figma.on("documentchange", (event) => {
-  const selectionIds = new Set(figma.currentPage.selection.map((n) => n.id));
-  const fillChanged = event.documentChanges.some(
-    (change) =>
-      change.type === "PROPERTY_CHANGE" &&
-      selectionIds.has(change.id) &&
-      change.properties.includes("fills")
-  );
-  if (fillChanged) {
-    readSelectionColor();
-  }
-});
+  // Auf Selektionsänderungen reagieren
+  figma.on("selectionchange", readSelectionColor);
+
+  // Auf Dokumentänderungen reagieren (z.B. Pipette ändert Fill eines selektierten Nodes)
+  figma.on("documentchange", (event) => {
+    const selectionIds = new Set(figma.currentPage.selection.map((n) => n.id));
+    const fillChanged = event.documentChanges.some(
+      (change) =>
+        change.type === "PROPERTY_CHANGE" &&
+        selectionIds.has(change.id) &&
+        change.properties.includes("fills")
+    );
+    if (fillChanged) {
+      readSelectionColor();
+    }
+  });
+}
+
+main();
 
 figma.ui.onmessage = (msg) => {
   if (msg.type === "close") {
